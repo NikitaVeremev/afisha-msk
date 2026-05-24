@@ -277,6 +277,7 @@
     transition: transform .15s, border-color .15s, box-shadow .15s;
     position: relative;
     overflow: hidden;
+    cursor: pointer;
   }
   .card::before {
     content: '';
@@ -1165,6 +1166,10 @@ function renderControls() {
 function cardEl(e, status) {
   const card = document.createElement('article');
   card.className = 'card';
+  card.dataset.url = e.url;
+  card.setAttribute('role', 'link');
+  card.setAttribute('tabindex', '0');
+  card.setAttribute('aria-label', `${e.title} — открыть в Telegram`);
   const priceClass = e.free ? 'free' : 'paid';
   const ch = channelFromUrl(e.url);
   const channelHref = ch.username ? `https://t.me/${ch.username}` : e.url;
@@ -1317,6 +1322,23 @@ document.getElementById('channel-filter').addEventListener('click', e => {
   document.querySelectorAll('#channel-filter .chip').forEach(c => c.classList.toggle('active', c.dataset.channel === state.channel));
   renderContent();
   writeHash();
+});
+
+// Делегированный клик: вся карточка ведёт на TG-пост, кроме внутренних ссылок
+document.getElementById('content').addEventListener('click', ev => {
+  // Если кликнули по ссылке внутри карточки (канал, Подробнее, Пост) — пускаем нативное поведение
+  if (ev.target.closest('a')) return;
+  const card = ev.target.closest('.card');
+  if (!card || !card.dataset.url) return;
+  window.open(card.dataset.url, '_blank', 'noopener');
+});
+// Открытие по Enter/Space с клавиатуры
+document.getElementById('content').addEventListener('keydown', ev => {
+  if (ev.key !== 'Enter' && ev.key !== ' ') return;
+  const card = ev.target.closest('.card');
+  if (!card || !card.dataset.url) return;
+  ev.preventDefault();
+  window.open(card.dataset.url, '_blank', 'noopener');
 });
 
 renderDateStrip();

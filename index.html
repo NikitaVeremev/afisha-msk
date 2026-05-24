@@ -37,18 +37,28 @@
     --safe-top: env(safe-area-inset-top, 0px);
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
   html, body {
     margin: 0; padding: 0;
-    background: radial-gradient(circle at 10% -10%, #2a1a2e 0%, transparent 50%),
-                radial-gradient(circle at 90% 10%, #1a2a3a 0%, transparent 50%),
-                var(--bg);
+    background: var(--bg);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Display", "Segoe UI", Roboto, sans-serif;
     font-size: 15px;
     line-height: 1.55;
     min-height: 100vh;
-    overflow-x: hidden;
+    min-height: 100dvh;
   }
+  /* фон-градиент как fixed-слой, чтобы не пересчитывался при скролле */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(circle at 10% -10%, #2a1a2e 0%, transparent 50%),
+                radial-gradient(circle at 90% 10%, #1a2a3a 0%, transparent 50%);
+    pointer-events: none;
+  }
+  body { word-wrap: break-word; overflow-wrap: anywhere; }
   a { color: var(--link); text-decoration: none; transition: color .15s; }
   a:hover { color: var(--accent-2); text-decoration: underline; }
 
@@ -82,14 +92,12 @@
     margin: 0 0 4px;
   }
 
-  /* sticky date picker */
+  /* sticky date picker — сплошной фон вместо blur (blur тормозит на мобиле) */
   .date-strip-wrap {
     position: sticky;
     top: 0;
     z-index: 50;
-    background: rgba(15,15,18,.85);
-    -webkit-backdrop-filter: saturate(180%) blur(20px);
-    backdrop-filter: saturate(180%) blur(20px);
+    background: #131318;
     border-bottom: 1px solid var(--border);
     padding-top: var(--safe-top);
   }
@@ -114,7 +122,7 @@
     padding: 10px 16px;
     border-radius: 14px;
     cursor: pointer;
-    transition: all .15s;
+    transition: background-color .15s, border-color .15s, color .15s;
     text-align: center;
     min-width: 84px;
     min-height: 56px;
@@ -197,7 +205,7 @@
     font-size: 13px;
     color: var(--text);
     cursor: pointer;
-    transition: all .15s;
+    transition: background-color .15s, border-color .15s, color .15s;
     user-select: none;
     display: inline-flex;
     align-items: center;
@@ -278,12 +286,14 @@
     opacity: 0;
     transition: opacity .15s;
   }
-  .card:hover {
-    transform: translateY(-3px);
-    border-color: #404056;
-    box-shadow: var(--shadow);
+  @media (hover: hover) {
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: #404056;
+      box-shadow: var(--shadow);
+    }
+    .card:hover::before { opacity: 1; }
   }
-  .card:hover::before { opacity: 1; }
   .card-time {
     display: inline-flex;
     align-items: center;
@@ -387,6 +397,21 @@
     width: fit-content;
     border: 1px solid rgba(147,197,253,.2);
   }
+  .badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    width: fit-content;
+  }
+  .badge-status.closing { background: rgba(251,191,36,.15); color: #fbbf24; }
+  .badge-status.starting { background: rgba(74,222,128,.15); color: #4ade80; }
+  .badge-status.ongoing { background: rgba(74,222,128,.10); color: #86efac; border: 1px solid rgba(74,222,128,.25); }
 
   .badge-hype {
     display: inline-flex;
@@ -471,44 +496,114 @@
     margin-top: 60px;
   }
 
-  /* mobile */
+  /* ========== MOBILE ========== */
   @media (max-width: 720px) {
-    header.hero { padding: calc(20px + var(--safe-top)) 16px 8px; }
-    .eyebrow { margin-bottom: 8px; font-size: 11px; }
-    h1 { font-size: 26px; margin-bottom: 6px; line-height: 1.1; }
-    .subtitle { font-size: 13px; margin-bottom: 0; }
-    .date-strip { padding: 10px 12px; gap: 6px; }
-    .date-btn { min-width: 64px; min-height: 50px; padding: 8px 10px; border-radius: 12px; }
+    body { font-size: 14.5px; line-height: 1.5; }
+    header.hero {
+      padding: calc(16px + var(--safe-top)) 16px 4px;
+    }
+    .eyebrow { margin-bottom: 6px; font-size: 10.5px; }
+    h1 {
+      font-size: 26px;
+      margin-bottom: 6px;
+      line-height: 1.08;
+    }
+    .subtitle {
+      font-size: 13px;
+      margin-bottom: 0;
+      max-width: 100%;
+    }
+    /* sticky-полоса дат: убираем blur (тормозит на iOS), делаем плотный фон */
+    .date-strip-wrap {
+      background: #131318;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+    .date-strip {
+      padding: 10px 12px;
+      gap: 6px;
+    }
+    .date-btn {
+      min-width: 60px;
+      min-height: 48px;
+      padding: 7px 10px;
+      border-radius: 12px;
+    }
     .date-btn .day-name { font-size: 10px; }
-    .date-btn .day-num { font-size: 16px; }
-    .date-btn .count { font-size: 9px; }
-    .controls { margin: 12px 12px 0; border-radius: 14px; }
-    .controls > summary { padding: 12px 14px; font-size: 12px; }
+    .date-btn .day-num { font-size: 16px; margin-top: 1px; }
+    .date-btn .count { font-size: 9.5px; margin-top: 0; }
+
+    .controls {
+      margin: 10px 12px 0;
+      border-radius: 14px;
+    }
+    .controls > summary {
+      padding: 12px 14px;
+      font-size: 12px;
+    }
     .control-body { padding: 4px 14px 14px; }
-    main { padding: 12px 12px 60px; }
-    .section-title { margin: 24px 0 10px; font-size: 11px; }
-    .grid { grid-template-columns: 1fr; gap: 10px; margin-top: 12px; }
-    .card { padding: 16px; border-radius: 14px; gap: 8px; }
-    .card-title { font-size: 16px; line-height: 1.3; }
+    .control-row.inline { flex-direction: column; align-items: stretch; }
+
+    main { padding: 12px 12px calc(40px + env(safe-area-inset-bottom, 0px)); }
+
+    .section-title {
+      margin: 22px 0 10px;
+      font-size: 11px;
+      gap: 8px;
+    }
+    .section-title:first-child { margin-top: 4px; }
+
+    .grid {
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .card {
+      padding: 16px;
+      border-radius: 14px;
+      gap: 8px;
+    }
+    .card-title { font-size: 15.5px; line-height: 1.3; }
     .card-place { font-size: 12.5px; }
-    .card-desc { font-size: 12.5px; }
+    .card-desc { font-size: 12.5px; line-height: 1.45; }
     .card-audience { font-size: 11.5px; }
     .card-stats { font-size: 10.5px; gap: 8px; }
-    .chip { padding: 8px 12px; min-height: 38px; font-size: 12.5px; }
+    .card-time { font-size: 13px; }
+
+    /* чипы — крупнее tap area */
+    .chip {
+      padding: 9px 13px;
+      min-height: 40px;
+      font-size: 13px;
+    }
     .badge-channel { font-size: 10.5px; padding: 3px 8px; }
-    .badge-hype { font-size: 9.5px; padding: 2px 7px; }
+    .badge-hype { font-size: 9.5px; padding: 2px 7px; letter-spacing: .06em; }
     .badge-last-day, .badge-multi-day { font-size: 9px; padding: 2px 7px; }
-    .card-link.primary { padding: 5px 10px; font-size: 12.5px; }
+
+    .card-actions { gap: 8px; }
+    .card-link.primary { padding: 6px 11px; font-size: 12.5px; }
+    .card-link.secondary { font-size: 11.5px; }
     .card-footer { padding-top: 10px; gap: 8px; }
+
+    /* убираем hover-эффекты, оставляем :active */
+    .card:active { transform: scale(.985); transition: transform .08s; }
   }
 
   @media (max-width: 420px) {
+    header.hero { padding-left: 14px; padding-right: 14px; }
     h1 { font-size: 22px; }
-    .date-btn { min-width: 58px; min-height: 46px; padding: 7px 8px; }
-    .date-btn .day-name { font-size: 9.5px; }
-    .date-btn .day-num { font-size: 14px; }
+    .subtitle { font-size: 12.5px; }
+    .date-strip { padding: 9px 10px; gap: 5px; }
+    .date-btn { min-width: 56px; min-height: 46px; padding: 6px 9px; }
+    .date-btn .day-name { font-size: 9.5px; letter-spacing: .04em; }
+    .date-btn .day-num { font-size: 14.5px; }
+    .controls { margin: 8px 10px 0; }
+    main { padding: 10px 10px 40px; }
     .card { padding: 14px; }
+    .card-title { font-size: 15px; }
     .meta-row { gap: 4px; }
+    .card-footer { flex-direction: column; align-items: flex-start; }
+    .card-actions { width: 100%; justify-content: space-between; }
   }
 </style>
 </head>
@@ -768,6 +863,69 @@ function eventOnDate(e, dateISO) {
   if (e.dateRange) return e.dateRange[0] <= dateISO && dateISO <= e.dateRange[1];
   return false;
 }
+
+// Время на дорогу + минимально полезное время в часах. Можно крутить.
+const TRAVEL_HOURS = 1.0;     // ~1 час доехать
+const MIN_USEFUL_HOURS = 0.5; // ≥30 минут на месте чтобы было не зря
+const TRAVEL_MARGIN = TRAVEL_HOURS + MIN_USEFUL_HOURS; // 1.5ч до фактического "уже поздно"
+
+// Парсит конец события из строки времени.
+// "8:00–23:00" → 23. "21:00" (одно время) → +1.5ч. "По расписанию" → null.
+function extractEndHour(timeStr, startH) {
+  if (!timeStr) return null;
+  const norm = timeStr.replace(/[–—−]/g, '-');
+  const m = norm.match(/(\d{1,2}):\d{2}\s*-\s*(\d{1,2}):\d{2}/) ||
+            norm.match(/до\s+(\d{1,2}):\d{2}/);
+  if (m) {
+    return m[2] ? parseInt(m[2]) : parseInt(m[1]);
+  }
+  // одно время → ~1.5 часа консервативно (короткие лекции, игры, концерты)
+  if (startH != null) return Math.min(startH + 1.5, 23.5);
+  return null;
+}
+
+// Возвращает статус с учётом TRAVEL_MARGIN — времени на дорогу и минимально полезного.
+// 'past'         — событие закончится раньше, чем ты успеешь толком приехать
+// 'closing-soon' — успеешь, но впритык (последний час до effective-end)
+// 'starting-soon'— событие стартует в течение часа от прибытия
+// 'ongoing'      — идёт, успеешь застать
+// 'upcoming'     — будущее
+// 'static'       — multi-day, без startH, не сегодня
+function eventStatus(e, dateISO, todayISO, nowHour, nowMinute) {
+  if (dateISO !== todayISO) return 'static';
+  if (e.dateRange && e.dateRange[0] < e.dateRange[1]) return 'static';
+  if (e.startH == null) return 'static';
+  const nowDec = nowHour + (nowMinute || 0)/60;
+  const arriveDec = nowDec + TRAVEL_HOURS;
+  const endH = extractEndHour(e.time, e.startH);
+  const start = e.startH;
+  const isNight = endH != null && endH < start;
+  if (isNight) {
+    // Ночное событие пересекает полночь. Если сейчас уже в его диапазоне
+    if (nowDec >= start || nowDec < endH) {
+      // Считаем effectiveEnd = endH + 24 если ночное, для арифметики
+      const effEnd = endH + 24;
+      const arriveAbs = nowDec >= start ? arriveDec : arriveDec + 24;
+      if (arriveAbs >= effEnd - MIN_USEFUL_HOURS) return 'past';
+      if ((effEnd - arriveAbs) <= 1.5) return 'closing-soon';
+      return 'ongoing';
+    }
+    if (start - nowDec > 0 && start - nowDec <= 1.5) return 'starting-soon';
+    return nowDec < start ? 'upcoming' : 'past';
+  }
+  // Обычное событие
+  if (endH != null) {
+    // К моменту прибытия не останется и MIN_USEFUL_HOURS → бесполезно ехать
+    if (arriveDec >= endH - MIN_USEFUL_HOURS + 0.001) return 'past';
+    // Останется ≤1ч после приезда — впритык
+    if ((endH - arriveDec) <= 1) return 'closing-soon';
+  }
+  if (nowDec < start) {
+    if (start - arriveDec <= 1 && start - arriveDec >= -0.5) return 'starting-soon';
+    if (arriveDec < start) return 'upcoming';
+  }
+  return 'ongoing';
+}
 function channelFromUrl(url) {
   const m = url.match(/t\.me\/([^/]+)\//);
   if (!m) return { username: '', name: 'Telegram' };
@@ -860,7 +1018,8 @@ const state = {
   mode: 'category',
   sort: 'time',
   cat: 'all',
-  channel: 'all'
+  channel: 'all',
+  showPast: false  // на сегодня — скрывать прошедшие
 };
 
 function readHash() {
@@ -1002,7 +1161,7 @@ function renderControls() {
   });
 }
 
-function cardEl(e) {
+function cardEl(e, status) {
   const card = document.createElement('article');
   card.className = 'card';
   const priceClass = e.free ? 'free' : 'paid';
@@ -1016,9 +1175,14 @@ function cardEl(e) {
       ${e.stats.forwards ? `<span>🔁 ${fmtNum(e.stats.forwards)}</span>` : ''}
       ${e.stats.reactions ? `<span>❤ ${fmtNum(e.stats.reactions)}</span>` : ''}
     </div>` : '';
+  let statusBadge = '';
+  if (status === 'closing-soon') statusBadge = '<span class="badge-status closing">⏳ Скоро закроется</span>';
+  else if (status === 'starting-soon') statusBadge = '<span class="badge-status starting">🚀 Скоро начало</span>';
+  else if (status === 'ongoing') statusBadge = '<span class="badge-status ongoing">▶ Идёт сейчас</span>';
   card.innerHTML = `
     <div class="meta-row">
       <a class="badge-channel" href="${channelHref}" target="_blank" rel="noopener">${ch.name}</a>
+      ${statusBadge}
       ${hype ? `<span class="badge-hype ${hype.cls}">${hype.text}</span>` : ''}
       ${e.lastDay ? '<span class="badge-last-day">Последний день</span>' : ''}
       ${multiDay && !e.lastDay ? '<span class="badge-multi-day">Идёт несколько дней</span>' : ''}
@@ -1050,7 +1214,16 @@ function sectionEl(title, count) {
 function renderContent() {
   const content = document.getElementById('content');
   content.innerHTML = '';
+  const now = new Date();
+  const nowHour = now.getHours(), nowMinute = now.getMinutes();
+  const eventStatuses = new Map();
   let list = events.filter(e => eventOnDate(e, state.date));
+  // Скрываем прошедшие на сегодняшний день
+  list = list.filter(e => {
+    const st = eventStatus(e, state.date, today, nowHour, nowMinute);
+    eventStatuses.set(e, st);
+    return st !== 'past';
+  });
   if (state.cat !== 'all') list = list.filter(e => e.cat === state.cat);
   if (state.channel !== 'all') list = list.filter(e => channelFromUrl(e.url).username === state.channel);
 
@@ -1110,7 +1283,7 @@ function renderContent() {
     content.appendChild(sectionEl(title, groups[k].length));
     const grid = document.createElement('div');
     grid.className = 'grid';
-    groups[k].forEach(e => grid.appendChild(cardEl(e)));
+    groups[k].forEach(e => grid.appendChild(cardEl(e, eventStatuses.get(e))));
     content.appendChild(grid);
   });
 }

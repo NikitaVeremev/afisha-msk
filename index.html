@@ -1,0 +1,1154 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f0f12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Афиша Москвы">
+<title>Афиша Москвы · сегодня и до воскресенья</title>
+<meta name="description" content="Подборка событий Москвы из тематических Telegram-каналов: фестивали, концерты, кино, лекции, спорт, выставки. Фильтры по дате, каналу и популярности.">
+<!-- Open Graph для красивых превью в Telegram/WhatsApp/Slack -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Афиша Москвы 🎪">
+<meta property="og:description" content="События столицы на сегодня и до конца недели — из тематических Telegram-каналов. С фильтрами по дате, каналу и хайпу.">
+<meta property="og:locale" content="ru_RU">
+<meta name="twitter:card" content="summary_large_image">
+<!-- SVG-эмодзи как favicon (поддерживает Safari, Chrome, iOS Home Screen) -->
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23ff5a3c'/><text x='50%25' y='52%25' dominant-baseline='central' text-anchor='middle' font-size='40'>🎪</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='36' fill='%23ff5a3c'/><text x='50%25' y='52%25' dominant-baseline='central' text-anchor='middle' font-size='110'>🎪</text></svg>">
+<style>
+  :root {
+    --bg: #0f0f12;
+    --bg-2: #16161b;
+    --surface: #1c1c23;
+    --surface-2: #232330;
+    --border: #2c2c39;
+    --text: #f3f3f5;
+    --muted: #9b9bab;
+    --accent: #ff5a3c;
+    --accent-2: #ffb86b;
+    --price-free: #4ade80;
+    --price-paid: #fbbf24;
+    --link: #93c5fd;
+    --shadow: 0 14px 40px rgba(0,0,0,.4);
+    --radius: 18px;
+    --safe-top: env(safe-area-inset-top, 0px);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    background: radial-gradient(circle at 10% -10%, #2a1a2e 0%, transparent 50%),
+                radial-gradient(circle at 90% 10%, #1a2a3a 0%, transparent 50%),
+                var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  a { color: var(--link); text-decoration: none; transition: color .15s; }
+  a:hover { color: var(--accent-2); text-decoration: underline; }
+
+  header.hero {
+    padding: calc(56px + var(--safe-top)) 32px 16px;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-size: clamp(32px, 5vw, 56px);
+    line-height: 1.05;
+    margin: 0 0 14px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    background: linear-gradient(135deg, #fff 0%, #ffb86b 50%, #ff5a3c 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .subtitle {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 720px;
+    margin: 0 0 4px;
+  }
+
+  /* sticky date picker */
+  .date-strip-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(15,15,18,.85);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding-top: var(--safe-top);
+  }
+  .date-strip {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 12px 16px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+  .date-strip::-webkit-scrollbar { display: none; }
+  .date-btn {
+    flex: 0 0 auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 16px;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all .15s;
+    text-align: center;
+    min-width: 84px;
+    min-height: 56px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    line-height: 1.1;
+    scroll-snap-align: start;
+  }
+  .date-btn:hover { background: var(--surface-2); border-color: #4b4b62; }
+  .date-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #1a0f0a;
+    font-weight: 700;
+  }
+  .date-btn .day-name { font-size: 11px; opacity: .85; text-transform: uppercase; letter-spacing: .06em; }
+  .date-btn .day-num { font-size: 18px; font-weight: 700; margin-top: 2px; }
+  .date-btn.today::after {
+    content: '';
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--accent-2);
+    margin-top: 3px;
+  }
+  .date-btn.today.active::after { background: rgba(0,0,0,.55); }
+  .date-btn .count {
+    font-size: 10px;
+    opacity: .6;
+    margin-top: 1px;
+  }
+  .date-btn.active .count { opacity: .85; }
+
+  /* controls */
+  .controls {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin: 20px auto 0;
+    max-width: 1180px;
+    overflow: hidden;
+  }
+  .controls > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 14px 18px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+  }
+  .controls > summary::-webkit-details-marker { display: none; }
+  .controls > summary::after { content: '▾'; transition: transform .2s; }
+  .controls[open] > summary::after { transform: rotate(180deg); }
+  .control-body { padding: 4px 18px 18px; }
+  .control-row { margin-bottom: 14px; }
+  .control-row:last-child { margin-bottom: 0; }
+  .control-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    padding: 8px 13px;
+    border-radius: 999px;
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+    transition: all .15s;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+  }
+  .chip:hover { background: var(--surface-2); border-color: #4b4b62; }
+  .chip.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #1a0f0a;
+    font-weight: 600;
+  }
+  .chip.dim { opacity: .42; }
+  .chip.dim.active { opacity: 1; }
+  .chip .count { opacity: .6; font-size: 11px; }
+
+  main {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 20px 32px 80px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    color: var(--muted);
+    margin: 36px 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    grid-column: 1 / -1;
+  }
+  .section-title:first-child { margin-top: 0; }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .count-badge {
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 999px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: transform .15s, border-color .15s, box-shadow .15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    opacity: 0;
+    transition: opacity .15s;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    border-color: #404056;
+    box-shadow: var(--shadow);
+  }
+  .card:hover::before { opacity: 1; }
+  .card-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .card-title {
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin: 0;
+  }
+  .card-place {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .card-desc {
+    font-size: 13px;
+    color: #c8c8d4;
+    line-height: 1.5;
+  }
+  .card-footer {
+    margin-top: auto;
+    padding-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .price {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: var(--surface-2);
+  }
+  .price.free { color: var(--price-free); background: rgba(74,222,128,.08); }
+  .price.paid { color: var(--price-paid); background: rgba(251,191,36,.08); }
+  .card-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .card-link {
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: opacity .15s;
+  }
+  .card-link::after { content: '↗'; transition: transform .15s; }
+  .card-link:hover::after { transform: translate(2px, -2px); }
+  .card-link.primary {
+    background: rgba(255,90,60,.15);
+    color: var(--accent);
+    padding: 6px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,90,60,.25);
+  }
+  .card-link.primary:hover {
+    background: rgba(255,90,60,.25);
+    text-decoration: none;
+  }
+  .card-link.secondary {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .card-link.secondary:hover { color: var(--link); text-decoration: none; }
+
+  .badge-last-day {
+    display: inline-block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    font-weight: 700;
+    background: rgba(255,90,60,.15);
+    color: var(--accent);
+    padding: 3px 8px;
+    border-radius: 6px;
+    width: fit-content;
+  }
+  .badge-multi-day {
+    display: inline-block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    font-weight: 700;
+    background: rgba(147,197,253,.1);
+    color: var(--link);
+    padding: 3px 8px;
+    border-radius: 6px;
+    width: fit-content;
+    border: 1px solid rgba(147,197,253,.2);
+  }
+
+  .badge-hype {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    width: fit-content;
+  }
+  .badge-hype.viral { background: rgba(255,90,60,.18); color: var(--accent); }
+  .badge-hype.hype { background: rgba(255,184,107,.15); color: var(--accent-2); }
+  .badge-hype.radar { background: rgba(147,197,253,.12); color: var(--link); }
+  .badge-hype.quiet { background: rgba(255,255,255,.06); color: var(--muted); }
+
+  .card-audience {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .card-stats {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .card-stats span { display: inline-flex; gap: 3px; }
+
+  .badge-channel {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(147,197,253,.1);
+    color: var(--link);
+    padding: 4px 9px;
+    border-radius: 999px;
+    text-decoration: none;
+    border: 1px solid rgba(147,197,253,.2);
+    transition: background .15s, border-color .15s;
+    width: fit-content;
+  }
+  .badge-channel:hover {
+    background: rgba(147,197,253,.18);
+    border-color: rgba(147,197,253,.4);
+    text-decoration: none;
+  }
+  .badge-channel::before {
+    content: '';
+    width: 12px; height: 12px;
+    background: currentColor;
+    -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z'/></svg>") center/contain no-repeat;
+            mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z'/></svg>") center/contain no-repeat;
+    flex-shrink: 0;
+  }
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--muted);
+  }
+  .empty .em { font-size: 40px; display: block; margin-bottom: 12px; }
+
+  footer {
+    text-align: center;
+    padding: 32px 24px env(safe-area-inset-bottom, 24px);
+    color: var(--muted);
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+    margin-top: 60px;
+  }
+
+  /* mobile */
+  @media (max-width: 720px) {
+    header.hero { padding: calc(20px + var(--safe-top)) 16px 8px; }
+    .eyebrow { margin-bottom: 8px; font-size: 11px; }
+    h1 { font-size: 26px; margin-bottom: 6px; line-height: 1.1; }
+    .subtitle { font-size: 13px; margin-bottom: 0; }
+    .date-strip { padding: 10px 12px; gap: 6px; }
+    .date-btn { min-width: 64px; min-height: 50px; padding: 8px 10px; border-radius: 12px; }
+    .date-btn .day-name { font-size: 10px; }
+    .date-btn .day-num { font-size: 16px; }
+    .date-btn .count { font-size: 9px; }
+    .controls { margin: 12px 12px 0; border-radius: 14px; }
+    .controls > summary { padding: 12px 14px; font-size: 12px; }
+    .control-body { padding: 4px 14px 14px; }
+    main { padding: 12px 12px 60px; }
+    .section-title { margin: 24px 0 10px; font-size: 11px; }
+    .grid { grid-template-columns: 1fr; gap: 10px; margin-top: 12px; }
+    .card { padding: 16px; border-radius: 14px; gap: 8px; }
+    .card-title { font-size: 16px; line-height: 1.3; }
+    .card-place { font-size: 12.5px; }
+    .card-desc { font-size: 12.5px; }
+    .card-audience { font-size: 11.5px; }
+    .card-stats { font-size: 10.5px; gap: 8px; }
+    .chip { padding: 8px 12px; min-height: 38px; font-size: 12.5px; }
+    .badge-channel { font-size: 10.5px; padding: 3px 8px; }
+    .badge-hype { font-size: 9.5px; padding: 2px 7px; }
+    .badge-last-day, .badge-multi-day { font-size: 9px; padding: 2px 7px; }
+    .card-link.primary { padding: 5px 10px; font-size: 12.5px; }
+    .card-footer { padding-top: 10px; gap: 8px; }
+  }
+
+  @media (max-width: 420px) {
+    h1 { font-size: 22px; }
+    .date-btn { min-width: 58px; min-height: 46px; padding: 7px 8px; }
+    .date-btn .day-name { font-size: 9.5px; }
+    .date-btn .day-num { font-size: 14px; }
+    .card { padding: 14px; }
+    .meta-row { gap: 4px; }
+  }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="eyebrow">Афиша Москвы</div>
+  <h1 id="page-title">Что сегодня</h1>
+  <p class="subtitle" id="page-subtitle">Подборка событий из московских Telegram-каналов. Тапни день — увидишь его афишу.</p>
+</header>
+
+<div class="date-strip-wrap">
+  <div class="date-strip" id="date-strip"></div>
+</div>
+
+<details class="controls" id="controls">
+  <summary><span>Фильтры и группировка</span></summary>
+  <div class="control-body">
+    <div class="control-row">
+      <div class="control-label">Группировать по</div>
+      <div class="chips" id="group-mode">
+        <span class="chip active" data-mode="category">🗂 По типу</span>
+        <span class="chip" data-mode="time">🕐 По времени дня</span>
+        <span class="chip" data-mode="channel">📡 По каналу</span>
+        <span class="chip" data-mode="hype">🔥 По хайпу</span>
+      </div>
+    </div>
+    <div class="control-row">
+      <div class="control-label">Сортировать внутри группы</div>
+      <div class="chips" id="sort-mode">
+        <span class="chip active" data-sort="time">🕐 По времени</span>
+        <span class="chip" data-sort="hype">🔥 По популярности</span>
+      </div>
+    </div>
+    <div class="control-row">
+      <div class="control-label">Категория</div>
+      <div class="chips" id="cat-filter"></div>
+    </div>
+    <div class="control-row">
+      <div class="control-label">Канал</div>
+      <div class="chips" id="channel-filter"></div>
+    </div>
+  </div>
+</details>
+
+<main>
+  <div id="content"></div>
+  <footer>Сгенерировано через skill <code>moscow-events-digest</code>. Каналы: KudaGo, Лето в Москве, Привет не хочешь сходить?, сегодня сюда, Олеся го на выходных?, Night2Day, Медиум Кволити Афиша, Первый ночной, ДИСКО КЛУБ, Île Thélème, Публичные дела, РУФ, пинг таблет, Луч, USEFUL MEET и др.</footer>
+</main>
+
+<script>
+// ===== DATA =====
+// dates: ['YYYY-MM-DD', ...]  ИЛИ  dateRange: ['YYYY-MM-DD','YYYY-MM-DD']
+// startH: число (24ч) или null для «по расписанию»
+const events = [
+  // ===== Многодневные (включая сегодня) =====
+  { cat: 'festival', dateRange: ['2026-05-23','2026-05-24'], startH: 12, time: '12:00–22:00', title: 'Veter Spring Fest', place: 'Парк Горького, Крымский Вал 9', desc: 'Маркет, цветочный рынок, йога и медитации, гончарные мастерские.', audience: 'Молодёжь 22–35, hipster crowd', price: 'Бесплатно', free: true, stats: { views: 1500, forwards: 14, reactions: 10 }, url: 'https://t.me/quda_today/9016' },
+  { cat: 'festival', dateRange: ['2026-05-22','2026-05-24'], startH: 12, time: '12:00–22:00', title: 'Russian Grill Fest', place: 'Квартал Арма, Нижний Сусальный 5', desc: '30+ грилей, мясные мастер-классы, маркет, музыка.', audience: 'Гастро-фанаты 25–40', price: 'По билетам', free: false, stats: { views: 2700, forwards: 30, reactions: 24 }, url: 'https://t.me/privetpoidem/25878' },
+  { cat: 'market', dateRange: ['2026-05-23','2026-05-24'], startH: 12, time: '12:00–20:00', title: 'Маркет «Качи-Базар»', place: 'Artplay, Малый зал — Нижняя Сыромятническая 10с7', desc: 'Локальные бренды, фуд-зона, мастер-классы, dog-friendly.', audience: 'Молодёжь 22–32, hipster crowd', price: 'Бесплатно', free: true, stats: { views: 1334, forwards: 12, reactions: 7 }, url: 'https://t.me/quda_today/9042' },
+  { cat: 'market', dateRange: ['2026-05-23','2026-05-24'], startH: 12, time: '12:00–21:00', title: '«Попкорн Маркет»', place: 'Хлебозавод №9, Новодмитровская 1с1', desc: 'Локальные бренды, мастер-классы, йога, диджей-сеты.', audience: 'Молодёжь и творческий мидл-класс', price: 'Бесплатно', free: true, stats: { views: 1100, forwards: 8, reactions: 12 }, url: 'https://t.me/kudago/42194' },
+  { cat: 'market', dateRange: ['2026-05-22','2026-05-24'], startH: 12, time: '12:00–21:00', title: 'Фестиваль «Мосвинтаж»', place: 'Даниловский Ивент Холл, Дубининская 71', desc: '200+ винтажных брендов: одежда, винил, декор.', audience: 'Винтаж-собиратели 25–45', price: 'Бесплатно', free: true, stats: { views: 950, forwards: 8, reactions: 9 }, url: 'https://t.me/kudago/42128' },
+  { cat: 'festival', dateRange: ['2026-05-22','2026-05-24'], startH: 21, time: '21:00', title: 'Фестиваль водных фонариков', place: 'Нижний Красногвардейский пруд, Мантулинская 5', desc: 'Спуск тысяч светящихся фонариков на воду.', audience: 'Романтические пары и семьи', price: 'Бесплатно (фонарики — на месте)', free: true, stats: { views: 1300, forwards: 30, reactions: 25 }, url: 'https://t.me/kudago/42190' },
+  { cat: 'theatre', dateRange: ['2026-05-23','2026-05-24'], startH: null, time: 'По расписанию', title: 'Спектакль «Психопаты» по Чехову', place: 'Театр на Страстном', desc: 'Виктор и Иван Добронравовы, Сергей Гилёв, реж. Фёдор Малышев.', audience: 'Театралы 25–50', price: 'По билетам', free: false, stats: { views: 1450, forwards: 12, reactions: 18 }, url: 'https://t.me/kudago/42254' },
+  { cat: 'market', dateRange: ['2026-05-21','2026-05-24'], startH: 19, time: 'с 19:30', title: 'STOLOVAYA — русские выходные', place: 'STOLOVAYA, Покровка 38с5', desc: 'Биф а-ля рус, борщ, шашлыки от шефа Лопатина.', audience: 'Гастро + молодёжь Курской', price: 'По меню', free: false, stats: { views: 1254, forwards: 26 }, url: 'https://t.me/quda_today/9040' },
+
+  // ===== 24 мая (вс) =====
+  { cat: 'sport', dates: ['2026-05-24'], startH: 11, time: '11:00–14:00', title: 'Padel Morning Party', place: 'Буэнос Падел, проспект Мира 119с22 (ВДНХ)', desc: 'Утренние танцы и падел: 11:00 кофе и танцы, 12:00 групповые тренировки (sold out), 13:00 танцпол. Сменная обувь обязательна.', audience: 'Wellness-rave crowd, 25–38', price: 'По билетам', free: false, stats: { views: 1200, forwards: 30, reactions: 50 }, url: 'https://t.me/c/7658417896/428045' },
+  { cat: 'lecture', dates: ['2026-05-24'], startH: 13, time: '13:00', title: 'Blah-Blah Club: Getting ready for summer', place: 'Surf Coffee × Flacon (м. Дмитровская)', desc: 'Английский разговорный клуб — обсуждаем летние планы. Хост — Nastasia. Места ограничены.', audience: 'Экспаты, изучающие English 22–35', price: '990₽', free: false, url: 'https://t.me/speakingclubsurf/2634' },
+  { cat: 'festival', dates: ['2026-05-24'], startH: 8, time: '8:00–23:00', title: '3-й Международный день медитации', place: 'Музей-заповедник «Царицыно»', desc: '40+ площадок практик, лекции, концерты Жени Любич и Сати Казановой.', audience: 'Массовая, mindful crowd 25–45', price: 'Бесплатно (шатры — по билетам)', free: true, stats: { views: 1400, forwards: 10, reactions: 15 }, url: 'https://t.me/kudago/42167' },
+  { cat: 'sport', dates: ['2026-05-24'], startH: 9, time: 'с 9:00', title: 'День футбола в Лужниках', place: 'Олимпийский комплекс «Лужники»', desc: 'Соревнования, концерты, автограф-сессии.', price: 'Бесплатно', free: true, audience: 'Семьи и любители футбола', stats: { views: 5800, forwards: 25, reactions: 32 }, url: 'https://t.me/moscowfests/10462' },
+  { cat: 'sport', dates: ['2026-05-24'], startH: 10, time: '10:00–22:00', title: 'Стритбаскет-тур', place: 'ВДНХ (рядом с пав. «Узбекистан»)', desc: 'Уличный баскетбол 3×3, диджей-сет, награждение в 22:00.', price: 'Бесплатно', free: true, audience: 'Спорт-комьюнити 18–35', stats: { views: 6347, forwards: 28, reactions: 37 }, url: 'https://t.me/moscowfests/10594' },
+  { cat: 'festival', dates: ['2026-05-24'], startH: 10, time: '10:00–22:00', title: 'День Африки', place: 'Музей «ЗИЛАРТ», Бул. Братьев Весниных 3', desc: 'Танц-перформанс из Ганы/Конго/Руанды, маркет винила, стритфуд, баттл.', price: 'Бесплатно', free: true, audience: 'Творческий мидл-класс 25–40', stats: { views: 2800, forwards: 22 }, url: 'https://t.me/privetpoidem/25841' },
+  { cat: 'sport', dates: ['2026-05-24'], startH: 10, time: 'с 10:00', title: 'Самокатный спорт — «Открытие сезона»', place: 'Скейт-парк «Московских сезонов», Святоозерская 1', desc: 'Заезды любителей и профи, церемония награждения.', price: 'Бесплатно по регистрации', free: true, audience: 'Райдеры и экстремалы', stats: { views: 7115, forwards: 15, reactions: 11 }, url: 'https://t.me/moscowfests/10588' },
+  { cat: 'festival', dates: ['2026-05-24'], startH: 11, time: '11:00', title: 'Мастер-класс росписи шоперов', place: 'ул. Ключевая 22к1', desc: 'Мастер-класс для детей: вышивка, стразы, декор.', price: 'Бесплатно', free: true, audience: 'Семьи с детьми', stats: { views: 5500, forwards: 8, reactions: 6 }, url: 'https://t.me/moscowfests/10522' },
+  { cat: 'lecture', dates: ['2026-05-24'], startH: 12, time: '12:00', title: 'Мисима «Солнце и сталь» + пробежка', place: '«Чехов и компания», Гончарная 26к1', desc: 'Разбор культового эссе и пробежка до 5 км.', price: 'По регистрации', free: false, audience: 'Молодёжь 22–32', stats: { views: 1500, forwards: 12 }, url: 'https://t.me/quda_today/9015' },
+  { cat: 'lecture', dates: ['2026-05-24'], startH: 12, time: '12:00', title: 'Воркшоп «Письмо себе»', place: 'Кароче Кофе, Старокирочный 16/2с1', desc: 'Коллажи и письмо в будущее, через год вернут.', price: '1000₽ + напиток', free: false, audience: 'Творческая молодёжь', stats: { views: 1500, forwards: 8, reactions: 6 }, url: 'https://t.me/quda_today/9011' },
+  { cat: 'lecture', dates: ['2026-05-24'], startH: 12, time: '12:00–18:00', title: 'Интенсив «Проявленность в кадре»', place: 'Киностудия АМЕДИА', desc: 'Работа с телом, голосом, импровизацией, камерой.', price: '14 000₽', free: false, audience: 'Креаторы и актёры', stats: { views: 1500, forwards: 5 }, url: 'https://t.me/quda_today/9008' },
+  { cat: 'market', dates: ['2026-05-24'], startH: 12, time: '12:00–22:00', title: 'Публика на VETER SPRING FEST', place: 'Парк Горького (фуд-зона)', desc: 'Хот-доги, картофель с рваной свининой, креветки.', price: 'По меню', free: false, audience: 'Локалы Чистых прудов', stats: { views: 949, forwards: 38, reactions: 50 }, url: 'https://t.me/publiquecafe/1847' },
+  { cat: 'sport', dates: ['2026-05-24'], startH: 13, time: '13:00 / 14:00 / 15:00', title: 'Весенний велофестиваль', place: 'Проспект Академика Сахарова', desc: 'Заезд по свободному Садовому кольцу.', price: 'Бесплатно по регистрации', free: true, audience: 'Городские велосипедисты', stats: { views: 1500, forwards: 18, reactions: 14 }, url: 'https://t.me/kudago/42242' },
+  { cat: 'market', dates: ['2026-05-24'], startH: 13, time: '13:00–20:00', title: 'Garage Sale на веранде Marie Laveau', place: 'Marie Laveau, Петровка 30/7', desc: 'Охота за одеждой и аксессуарами, коктейли.', price: 'Бесплатно', free: true, audience: 'Модники Петровки', stats: { views: 1560, forwards: 28, reactions: 11 }, url: 'https://t.me/quda_today/9031' },
+  { cat: 'sport', dates: ['2026-05-24'], startH: 14, time: '14:00 (свободно), 15:30 (турнир)', title: 'Пинг-понг турнир на 10 столах', place: 'LOFT HALL, Ленинская Слобода 26с11', desc: 'Игра из 3 сетов, профикам нельзя, призы от феста «Дружба».', price: 'Напиток на баре', free: false, url: 'https://t.me/pingtablet/7034' },
+  { cat: 'market', dates: ['2026-05-24'], startH: 14, time: 'с 14:00', title: '«О!Мега Вкус» — дегустация', place: 'Рыбные рынки в Митино и Косино-Ухтомском', desc: 'Дегустация котлет и мини-филе из минтая.', price: 'Бесплатно', free: true, audience: 'Гастро-фанаты', stats: { views: 4500, forwards: 14 }, url: 'https://t.me/moscowfests/10558' },
+  { cat: 'lecture', dates: ['2026-05-24'], startH: 15, time: '15:00', title: 'Игра «Куда приводят мечты»', place: 'Локация уточняется (@viki_nowo)', desc: 'Трансформационная игра, до 6 участников.', price: 'По записи', free: false, audience: 'Self-improvement, 25–40', stats: { views: 200, forwards: 2 }, sourceUrl: 'http://useful-meet.ru/', url: 'https://t.me/useful_meet/711' },
+  { cat: 'theatre', dates: ['2026-05-24'], startH: 17, time: '17:00', title: '«Внеклассное чтение» — лит-шоу', place: 'THE H.O.L.E., Маросейка 2/15с1', desc: 'Маргарита Родина + Мария Маркова и Вика Македонская. 18+', price: 'По билетам', free: false, audience: 'Литературный кружок', stats: { views: 900, forwards: 8, reactions: 12 }, url: 'https://t.me/MediumQuality_Afisha/1396' },
+  { cat: 'music', dates: ['2026-05-24'], startH: 17, time: '17:00–23:30', title: '128BPM × Tomaz Mraz — Performance Show', place: 'Альфа Кристалл (м. Курская)', desc: 'Хореография, лайв Tomaz Mraz, маркет, баттлы.', price: '1890₽', free: false, audience: 'Танцы, dance crowd', stats: { views: 1700, forwards: 35, reactions: 24 }, url: 'https://t.me/goonweekend/4696' },
+  { cat: 'music', dates: ['2026-05-24'], startH: 19, time: '19:00', title: 'Музыка Ханса Циммера на крыше', place: 'Отель The Carlton, Тверская 3', desc: 'Саундтреки «Интерстеллара», «Дюны», «Начала». 100 мест.', price: 'По билетам', free: false, audience: 'Романтика, пары 25–40', stats: { views: 1600, forwards: 22, reactions: 16 }, url: 'https://t.me/kudago/42208' },
+  { cat: 'music', dates: ['2026-05-24'], startH: 19, time: '19:00–02:00', title: 'Bloodwork @ The Last Bar', place: 'The Last Bar, Маросейка 4/2с3', desc: 'Диджей-сеты, лайв Vova Karaulan, закат на веранде.', price: 'Бесплатно', free: true, audience: 'Bar crowd Китай-города', stats: { views: 1500, forwards: 11, reactions: 5 }, url: 'https://t.me/quda_today/9025' },
+  { cat: 'music', dates: ['2026-05-24'], startH: 19, time: 'Последний день · ужин', title: '«.оригинал» × Isentie — спецменю с QR треков', place: '«.оригинал», ул. Казакова', desc: 'К коктейлю и блюду — QR с треками Isentie.', price: 'По меню', free: false, lastDay: true, url: 'https://t.me/night2daymoscow/13819' },
+  { cat: 'music', dates: ['2026-05-24'], startH: 20, time: '20:00', title: 'Прощальная вечеринка «Скворец!»', place: '«Скворец!», Малая Бронная 4', desc: 'Пунш, диджей-сеты, аукцион интерьерных вещей.', price: 'Бесплатно', free: true, audience: 'Локалы Маяковской', stats: { views: 1595, forwards: 47, reactions: 16 }, url: 'https://t.me/quda_today/9026' },
+  { cat: 'cinema', dates: ['2026-05-24'], startH: null, time: 'По расписанию', title: 'Кинопоказ «Колония» с обсуждением', place: 'КАРО 11 Октябрь, Новый Арбат 24', desc: 'Воскресный показ из подборки авторского кино.', price: 'По билетам', free: false, audience: 'Синефилы 25–40', stats: { views: 2900, forwards: 38 }, url: 'https://t.me/privetpoidem/25836' },
+  { cat: 'cinema', dates: ['2026-05-24'], startH: null, time: 'По расписанию', title: 'Кинопоказ «Яйцо ангела»', place: 'Лекторий Музея «Гараж»', desc: 'Культовое аниме Мамору Осии.', price: 'По билетам', free: false, audience: 'Синефилы 25–40', stats: { views: 2900, forwards: 38 }, url: 'https://t.me/privetpoidem/25836' },
+  { cat: 'cinema', dates: ['2026-05-24'], startH: null, time: 'По расписанию', title: '«Еврейское счастье» + лекция', place: 'Еврейский музей и центр толерантности', desc: 'Показ со вступительной лекцией.', price: 'По билетам', free: false, audience: 'Синефилы 25–40', stats: { views: 2900, forwards: 38 }, url: 'https://t.me/privetpoidem/25836' },
+  { cat: 'cinema', dates: ['2026-05-24'], startH: null, time: 'По расписанию', title: 'Кинопоказ «Грязные деньги»', place: 'ЧТИВО ДОМ', desc: 'Криминальная драма.', price: 'По билетам', free: false, audience: 'Синефилы 25–40', stats: { views: 2900, forwards: 38 }, sourceUrl: 'https://dom.chtv.ru/#events', url: 'https://t.me/privetpoidem/25836' },
+  { cat: 'cinema', dates: ['2026-05-24'], startH: null, time: 'По расписанию', title: '«Пока небо смотрит» Р. Михайлова', place: 'МАММ', desc: 'Премьерный показ.', price: 'По билетам', free: false, audience: 'Синефилы 25–40', stats: { views: 2900, forwards: 38 }, url: 'https://t.me/privetpoidem/25836' },
+  { cat: 'lecture', dates: ['2026-05-24'], startH: null, time: 'По расписанию', title: 'Цианотипия «Отпечатки времени и света»', place: 'Музей Льва Толстого', desc: 'Лекция и мастер-класс.', price: 'По билетам', free: false, audience: 'Интеллигенция 30+', stats: { views: 2900, forwards: 24, reactions: 18 }, url: 'https://t.me/privetpoidem/25826' },
+  { cat: 'lecture', dates: ['2026-05-24'], startH: null, time: 'По расписанию', title: '«Как смотреть кино? Радикальные стратегии»', place: 'Еврейский музей', desc: 'Лекция о методах восприятия.', price: 'По билетам', free: false, audience: 'Интеллигенция 30+', stats: { views: 2900, forwards: 24, reactions: 18 }, url: 'https://t.me/privetpoidem/25826' },
+  { cat: 'lecture', dates: ['2026-05-24'], startH: null, time: 'По расписанию', title: '«Не только короны»', place: 'Музей Русского Импрессионизма', desc: 'Лекция о головных уборах как символах власти.', price: 'По билетам', free: false, audience: 'Интеллигенция 30+', stats: { views: 2900, forwards: 24, reactions: 18 }, url: 'https://t.me/privetpoidem/25826' },
+  { cat: 'music', dates: ['2026-05-24'], startH: null, time: 'По расписанию', title: 'Антон Батагов — Triadic Memories / Mozart Decomposed', place: 'ДК «Рассвет», Столярный 3к15', desc: 'Концерт-исследование Euphoria Orchestra.', price: 'По билетам', free: false, audience: 'Любители современной классики', stats: { views: 1500, forwards: 10, reactions: 7 }, url: 'https://t.me/quda_today/9023' },
+  { cat: 'market', dates: ['2026-05-24'], startH: null, time: 'Последний день', title: 'Якитория × Cha U Kao — SPF за коктейль', place: 'Все Якитории Москвы', desc: 'Коктейль «Киносита» + SPF-крем в подарок.', price: '777₽', free: false, lastDay: true, audience: 'Девушки 22–35', stats: { views: 1700, forwards: 30, reactions: 20 }, url: 'https://t.me/goonweekend/4691' },
+
+  // ===== 25 мая (пн) =====
+  { cat: 'lecture', dates: ['2026-05-25'], startH: 19, time: '19:00', title: 'Blah-Blah Club: Monogamy is unnatural — agree or disagree?', place: 'Surf Coffee × Rock (м. Шаболовская)', desc: 'Дискуссия на английском о современных отношениях. Хост — Tati. 4 места из 9.', audience: 'Экспаты, English speakers 22–35', price: '990₽', free: false, url: 'https://t.me/speakingclubsurf/2634' },
+  { cat: 'music', dates: ['2026-05-25'], startH: 19, time: '19:30', title: 'Île Thélème Ensemble «Ночные метаморфозы»', place: 'ДК «Рассвет», Столярный 3к15', desc: 'Берг, Лигети, Куртаг. При поддержке Института Листа.', audience: 'Интеллигенция, классики 30+', price: 'По билетам', free: false, stats: { views: 1438, forwards: 8, reactions: 17 }, url: 'https://t.me/ile_theleme/1700' },
+  { cat: 'music', dates: ['2026-05-25','2026-06-29'], startH: 19, time: '19:00', title: 'Орган в «Царицыно»: от Баха до Циммера', place: 'Атриум Хлебного дома, Царицыно', desc: 'Бах + современная музыка Циммера.', price: 'от 3500₽', free: false, audience: 'Классика, романтика', stats: { views: 1500, forwards: 12, reactions: 12 }, url: 'https://t.me/kudago/34516' },
+  { cat: 'cinema', dates: ['2026-05-25'], startH: 21, time: '21:00 + 23:00', title: 'РУФ: «Ангел-А» и «Сумерки»', place: 'РУФ (крыша)', desc: 'Кинопоказы на крыше под открытым небом.', price: 'По билетам', free: false, audience: 'Пары, романтика, 23–35', stats: { views: 18822, forwards: 1243, reactions: 92 }, url: 'https://t.me/roof180/740' },
+
+  // ===== 26 мая (вт) =====
+  { cat: 'cinema', dates: ['2026-05-26'], startH: 21, time: '21:00 + 23:00', title: 'РУФ: «Лови волну» и «Дьявол носит Прада 2»', place: 'РУФ (крыша)', desc: 'Кинопоказы под открытым небом.', price: 'По билетам', free: false, audience: 'Пары, романтика, 23–35', stats: { views: 18822, forwards: 1243, reactions: 92 }, url: 'https://t.me/roof180/740' },
+  { cat: 'sport', dates: ['2026-05-26'], startH: 19, time: '19:00', title: 'Пинг-понг турнир + днюха максима', place: 'Simach, Тверской бульвар 15с2', desc: 'Блиц-формат до 3 очков, призы, dress-code нарядный, 18+.', price: 'Напиток на баре', free: false, audience: 'Тусовщики 22–32', stats: { views: 1880, forwards: 46, reactions: 80 }, url: 'https://t.me/pingtablet/7037' },
+  { cat: 'cinema', dates: ['2026-05-26'], startH: null, time: 'По расписанию', title: 'Кинопоказ «Майкл»', place: 'Кинотеатр «Пионер»', desc: 'Премьера фильма про Майкла Джексона.', price: 'По билетам', free: false, audience: 'Синефилы 25–40', stats: { views: 2900, forwards: 38 }, url: 'https://t.me/privetpoidem/25836' },
+
+  // ===== 27 мая (ср) =====
+  { cat: 'cinema', dates: ['2026-05-27'], startH: 21, time: '21:00 + 23:00', title: 'РУФ: «Дети шпионов» и «Дьявол носит Прада 2»', place: 'РУФ (крыша)', desc: 'Кинопоказы.', price: 'По билетам', free: false, audience: 'Пары, романтика, 23–35', stats: { views: 18822, forwards: 1243, reactions: 92 }, url: 'https://t.me/roof180/740' },
+  { cat: 'sport', dates: ['2026-05-27'], startH: 18, time: '18:30', title: 'Пинг-понг турнир на веранде', place: 'Товарищество Рябовской мануфактуры, Холодильный пер. 3к1с4', desc: 'Диджей, призы, ракетку дадут.', price: 'Бесплатно', free: true, audience: 'Тусовщики 22–32', stats: { views: 1460, forwards: 21, reactions: 28 }, url: 'https://t.me/pingtablet/7042' },
+  { cat: 'cinema', dates: ['2026-05-27'], startH: 20, time: '20:00', title: 'Кинопоказ «Бархатные ручки»', place: 'Maddittoni, Новокузнецкая 24с2', desc: 'Уютный вечер кино в тёплой компании.', price: 'Бесплатно', free: true, url: 'https://t.me/quda_today/8910' },
+
+  // ===== 28 мая (чт) =====
+  { cat: 'cinema', dates: ['2026-05-28'], startH: 21, time: '21:10 + 23:30', title: 'РУФ: «Рататуй» и «500 дней лета»', place: 'РУФ (крыша)', desc: 'Кинопоказы под открытым небом.', price: 'По билетам', free: false, audience: 'Пары, романтика, 23–35', stats: { views: 18822, forwards: 1243, reactions: 92 }, url: 'https://t.me/roof180/740' },
+  { cat: 'music', dates: ['2026-05-28'], startH: 17, time: '17:00', title: 'Художники + музыканты в «Невротике»', place: '«Невротик», Яузская 5', desc: 'Эмбиент, нойз, авангард, психодел, блэкгейз. Атмосфера распада.', price: '500₽', free: false, audience: 'Андеграунд, эмбиент crowd', stats: { views: 1488, forwards: 15, reactions: 8 }, url: 'https://t.me/quda_today/9036' },
+  { cat: 'music', dates: ['2026-05-28'], startH: 19, time: '19:30', title: 'Brezel ensemble + хоровой ансамбль «Мелодия»', place: 'Île Thélème, ул. Правды 24/11', desc: 'Эшенвальдс, Мартынов, Васкс, Пярт, Плешак.', price: 'По билетам', free: false, audience: 'Интеллигенция, классики 30+', stats: { views: 1438, forwards: 8, reactions: 17 }, url: 'https://t.me/ile_theleme/1683' },
+
+  // ===== 29 мая (пт) =====
+  { cat: 'cinema', dates: ['2026-05-29'], startH: 21, time: '21:10 + 23:30', title: 'РУФ: Mamma Mia! и «Эта дурацкая любовь»', place: 'РУФ (крыша)', desc: 'Кинопоказы.', price: 'По билетам', free: false, audience: 'Пары, романтика, 23–35', stats: { views: 18822, forwards: 1243, reactions: 92 }, url: 'https://t.me/roof180/740' },
+  { cat: 'cinema', dates: ['2026-05-29'], startH: 19, time: '19:00', title: '«Бойцовский клуб» + мини-лекция', place: 'Кинотеатр «Луч», Малая Дмитровка 25с1', desc: 'Разбор цветокоррекции Финчера, попкорн бесплатно.', price: 'По билетам', free: false, audience: 'Синефилы 23–35', stats: { views: 127, forwards: 1, reactions: 3 }, url: 'https://t.me/luchlab/1777' },
+  { cat: 'cinema', dates: ['2026-05-29'], startH: 19, time: '19:00', title: 'Мини-девичник + «Блондинка в законе»', place: '«Котомка», Малый Казённый 16с1/14', desc: 'Винтажные журналы, дофаминовые десерты, культовый ромком.', price: '2250₽', free: false, audience: 'Девушки 22–32', stats: { views: 321, forwards: 6, reactions: 5 }, url: 'https://t.me/quda_today/9071' },
+  { cat: 'music', dateRange: ['2026-05-29','2026-05-31'], startH: null, time: '3 дня · 5 сцен', title: 'Фестиваль «ЛЕТНИК» от бара «Ровесник»', place: 'Ямское поле', desc: '100+ артистов: Cream Soda, Madk1d, Сироткин, Flaty + интерактивы.', price: 'По билетам', free: false, audience: 'Электронная сцена 21–35', stats: { views: 3791, forwards: 56, reactions: 31 }, url: 'https://t.me/napervom/8910' },
+  { cat: 'music', dates: ['2026-05-29'], startH: 22, time: '22:00 — до 02:00+', title: 'Вечеринка во дворе «Публики»', place: 'Дворик «Публики»', desc: 'Антон Севидов и Лера ByeByeleri за пультом. Кухня до 23:00.', price: 'Бесплатно', free: true, audience: 'Локалы + dance crowd', stats: { views: 943, forwards: 37 }, url: 'https://t.me/publiquecafe/1850' },
+  { cat: 'music', dates: ['2026-05-29'], startH: 19, time: '19:30', title: 'Миляуша Хайруллина — творческий вечер', place: 'Île Thélème, ул. Правды 24/11', desc: 'Фестиваль «Композиторы XXI века».', price: 'По билетам', free: false, audience: 'Интеллигенция, классики 30+', stats: { views: 1438, forwards: 8, reactions: 17 }, url: 'https://t.me/ile_theleme/1683' },
+
+  // ===== 30 мая (сб) =====
+  { cat: 'cinema', dates: ['2026-05-30'], startH: 21, time: '21:10 + 23:10', title: 'РУФ: Шрек и «Мы Миллеры!»', place: 'РУФ (крыша)', desc: 'Кинопоказы.', price: 'По билетам', free: false, audience: 'Пары, романтика, 23–35', stats: { views: 18822, forwards: 1243, reactions: 92 }, url: 'https://t.me/roof180/740' },
+  { cat: 'lecture', dates: ['2026-05-30'], startH: 19, time: '19:00', title: 'Мастер-класс по цианотипии', place: 'Кинотеатр «Луч», Малая Дмитровка 25с1', desc: 'Лазурные отпечатки, одиночные/парные билеты.', price: 'По билетам', free: false, audience: 'Синефилы 23–35', stats: { views: 127, forwards: 1, reactions: 3 }, url: 'https://t.me/luchlab/1777' },
+  { cat: 'lecture', dates: ['2026-05-30'], startH: null, time: 'По расписанию', title: 'Рисование тропиков в оранжерее', place: 'Музей-заповедник «Царицыно»', desc: 'Мастер-класс среди цветов и зелени.', price: 'По билетам', free: false, audience: 'Семьи и творческие', stats: { views: 4000, forwards: 12 }, url: 'https://t.me/moscowfests/10335' },
+  { cat: 'festival', dates: ['2026-05-30'], startH: null, time: 'Старт сезона', title: 'Открытие проекта «Лето в Москве»', place: 'По всему городу', desc: '«Театральный бульвар», «Времена и эпохи», «Усадьбы Москвы», «Сады и цветы».', price: 'Бесплатно', free: true, audience: 'Семьи + горожане', stats: { views: 4744, forwards: 34, reactions: 54 }, url: 'https://t.me/moscowfests/10595' },
+  { cat: 'music', dates: ['2026-05-30'], startH: 19, time: '19:00', title: 'Поэзия Наталии Азаровой', place: 'Île Thélème, ул. Правды 24/11', desc: 'Премьера вокального цикла Александра Белоусова на её стихи.', price: 'По билетам', free: false, audience: 'Поэзия + интеллигенция', stats: { views: 424, forwards: 3, reactions: 19 }, url: 'https://t.me/ile_theleme/1710' },
+
+  // ===== 31 мая (вс) =====
+  { cat: 'cinema', dates: ['2026-05-31'], startH: 21, time: '21:15 + 23:15', title: 'РУФ: «Красавица и Чудовище» и «Проект Конец света»', place: 'РУФ (крыша)', desc: 'Закрытие майской афиши.', price: 'По билетам', free: false, audience: 'Пары, романтика, 23–35', stats: { views: 18822, forwards: 1243, reactions: 92 }, url: 'https://t.me/roof180/740' },
+  { cat: 'cinema', dates: ['2026-05-31'], startH: 15, time: '15:00 и 19:00', title: '«Королевство полной луны» Уэса Андерсона', place: 'Кинотеатр «Луч», Малая Дмитровка 25с1', desc: 'Лекция, закуски, обсуждение.', price: '1600₽', free: false, audience: 'Синефилы 22–35', stats: { views: 524, forwards: 3, reactions: 5 }, url: 'https://t.me/quda_today/9070' },
+  { cat: 'music', dates: ['2026-05-31'], startH: 19, time: '19:00', title: 'Музыка Ханса Циммера на крыше', place: 'Отель The Carlton, Тверская 3', desc: 'Камерный формат, 100 мест.', price: 'По билетам', free: false, audience: 'Романтика, пары 25–40', stats: { views: 1600, forwards: 22, reactions: 16 }, url: 'https://t.me/kudago/42208' },
+  { cat: 'music', dates: ['2026-05-31'], startH: 19, time: '19:30', title: 'Заключительный концерт фестиваля «Громче слова»', place: 'Île Thélème, ул. Правды 24/11', desc: 'Коннессон, Лэнг, Карманов, Ахунов.', price: 'По билетам', free: false, audience: 'Интеллигенция, классики 30+', stats: { views: 1438, forwards: 8, reactions: 17 }, url: 'https://t.me/ile_theleme/1683' },
+  { cat: 'theatre', dates: ['2026-05-31'], startH: 19, time: '19:00', title: 'Шекспир «Венецианский Купец» (Theatre HD)', place: 'Île Thélème, ул. Правды 24/11', desc: 'Постановка «Глобуса», Джонатан Прайс в роли Шейлока.', price: 'По билетам', free: false, audience: 'Театралы и шекспироведы', stats: { views: 630, forwards: 6, reactions: 21 }, url: 'https://t.me/ile_theleme/1704' },
+  { cat: 'festival', dates: ['2026-05-31'], startH: 12, time: '12:00', title: '«ЛапаФест»', place: 'Lovely Loft, Б. Семеновская 42с6', desc: 'Маркет для собак, дефиле, грумеры и ветеринары.', price: '0–1200₽', free: false, audience: 'Семьи с питомцами', stats: { views: 1100, forwards: 8, reactions: 10 }, url: 'https://t.me/kudago/42205' },
+  { cat: 'festival', dates: ['2026-05-31'], startH: 16, time: '16:00–19:00', title: 'Фестиваль «Модная волна»', place: 'Концертный зал «Яровит Холл», Б. Якиманка 26', desc: 'Показы российских дизайнеров, лекции, маркет.', price: '4500₽', free: false, audience: 'Любители моды 22–35', stats: { views: 1000, forwards: 5, reactions: 5 }, url: 'https://t.me/kudago/42173' },
+
+  // ===== Длительные / многодневные с диапазоном =====
+  { cat: 'music', dateRange: ['2026-05-22','2026-05-31'], startH: null, time: 'Идёт несколько дней', title: 'Pretty Woman: бархатный джаз на крыше', place: 'Крыша Ibis на Киевской, Киевская 2', desc: 'Хиты 70-90-х в живом джазовом исполнении (даты: 22, 23, 30, 31).', price: 'По билетам', free: false, dateException: ['2026-05-24','2026-05-25','2026-05-26','2026-05-27','2026-05-28','2026-05-29'], audience: 'Романтика, пары 25–40', stats: { views: 1700, forwards: 20, reactions: 18 }, url: 'https://t.me/kudago/42244' },
+  { cat: 'theatre', dateRange: ['2026-05-26','2026-05-31'], startH: 14, time: '14:00 и 19:00', title: 'Мюзикл «Аленький цветочек» (предпоказ)', place: 'Московский театр мюзикла, Пушкинская пл. 2', desc: 'Петербург XIX века, полёт на аэростате, любовь и сказка.', price: '1000–6000₽', free: false, audience: 'Семьи 30+', stats: { views: 1500, forwards: 12, reactions: 14 }, url: 'https://t.me/kudago/42237' },
+  { cat: 'cinema', dateRange: ['2026-05-21','2026-05-31'], startH: null, time: 'По расписанию', title: 'Кинофестиваль в Художественном', place: 'Художественный, Арбатская площадь 14', desc: 'Париж, Милан, Гонконг 60-х, Берлин, Нью-Йорк, Петербург нулевых, Москва 2010-х.', price: 'По билетам', free: false, audience: 'Синефилы', stats: { views: 1021, forwards: 4, reactions: 9 }, url: 'https://t.me/quda_today/9050' },
+  { cat: 'expo', dateRange: ['2026-05-24','2026-05-31'], startH: null, time: 'Часы музея', title: '«Саврасов и тишина»', place: 'Музей «Новый Иерусалим», Истра', desc: '195-летие художника, классика и современное искусство.', price: 'до 400₽', free: false, audience: 'Любители живописи', stats: { views: 1300, forwards: 9, reactions: 11 }, url: 'https://t.me/kudago/39888' },
+  { cat: 'expo', dateRange: ['2026-05-24','2026-05-31'], startH: 12, time: '12:00–22:00', title: 'Выставка «СЕНС. Почувствуй стихии»', place: 'ЦСИ М\'АРС, Пушкарёв пер. 5', desc: 'Огонь, Вода, Земля, Воздух, Эфир — VR, ольфакторика, инсталляции.', price: '700–1600₽', free: false, audience: 'Современное искусство', stats: { views: 1400, forwards: 14, reactions: 16 }, url: 'https://t.me/kudago/41742' },
+  { cat: 'expo', dateRange: ['2026-05-24','2026-05-25'], startH: null, time: 'Часы музея', title: 'Выставка «Дыхание бронзы. Скульптура Бориса Чёрствого»', place: 'Новая Третьяковка', desc: 'Тактильная экспозиция, все произведения можно трогать.', price: 'до 700₽', free: false, audience: 'Современное искусство', stats: { views: 1100, forwards: 6, reactions: 8 }, url: 'https://t.me/kudago/40132' },
+
+  // ===== Последний день выставок (24 мая) =====
+  { cat: 'expo', dates: ['2026-05-24'], lastDay: true, startH: 10, time: '10:00–18:00', title: 'Выставка «Пингвины»', place: 'Дарвиновский музей, Вавилова 57', desc: 'Эволюция и биология пингвинов.', price: '0–600₽', free: false, audience: 'Семьи и любители науки', stats: { views: 1200, forwards: 5, reactions: 8 }, url: 'https://t.me/kudago/42008' },
+  { cat: 'expo', dates: ['2026-05-24'], lastDay: true, startH: null, time: 'до 19:30', title: '«За морями есть город» Алины Хатько', place: 'МосАРТ, Свободный проспект 19', desc: 'Живопись и графика после Ирана и Узбекистана.', price: '0–200₽', free: false, audience: 'Любители живописи', stats: { views: 900, forwards: 4, reactions: 6 }, url: 'https://t.me/kudago/42090' },
+  { cat: 'expo', dates: ['2026-05-24'], lastDay: true, startH: null, time: 'Часы музея', title: '«Медали Ефима Харабета»', place: 'Пушкинский музей, Волхонка 12', desc: 'Новое поступление в отдел нумизматики.', price: '0–800₽', free: false, audience: 'Любители ювелирного', stats: { views: 1100, forwards: 6, reactions: 7 }, url: 'https://t.me/kudago/41953' },
+  { cat: 'expo', dates: ['2026-05-24'], lastDay: true, startH: 12, time: '12:00–21:00', title: 'Михаил Калюта «Весь мир на палитре»', place: 'ММОМА на Гоголевском 10', desc: 'Живопись и пастель 2019–2026 гг.', price: '0–500₽', free: false, audience: 'Любители живописи', stats: { views: 1300, forwards: 8, reactions: 9 }, url: 'https://t.me/kudago/41744' },
+  { cat: 'expo', dates: ['2026-05-24'], lastDay: true, startH: null, time: 'Часы музея', title: '«Илларион Иванов-Шиц. Полвека на службе Москве»', place: 'Музей архитектуры им. Щусева, Воздвиженка 5/25', desc: '340+ экспонатов о московском зодчем.', price: 'до 450₽', free: false, audience: 'Любители архитектуры', stats: { views: 1400, forwards: 10, reactions: 12 }, url: 'https://t.me/kudago/40511' },
+  { cat: 'expo', dates: ['2026-05-24'], lastDay: true, startH: null, time: 'Часы музея', title: '«Лаки. Большая история в миниатюре»', place: 'Музей «Новый Иерусалим», Истра', desc: 'Федоскино, Палех, Мстёра, Холуй — 300+ работ.', price: 'до 350₽', free: false, audience: 'Любители декоративного', stats: { views: 1200, forwards: 7, reactions: 8 }, url: 'https://t.me/kudago/39787' },
+  { cat: 'expo', dates: ['2026-05-24'], lastDay: true, startH: null, time: 'Часы музея', title: '«Под маской»', place: 'Музей русского импрессионизма', desc: '100 лет маскарадной культуры.', price: 'По билетам', free: false, audience: 'Любители живописи 30+', stats: { views: 2200, forwards: 15 }, url: 'https://t.me/privetpoidem/24343' },
+  { cat: 'expo', dates: ['2026-05-24'], lastDay: true, startH: null, time: 'Часы музея', title: '«Рерих. В поисках „небесного Звенигорода"»', place: 'Звенигородский Манеж', desc: 'Последний день выставки.', price: 'По билетам', free: false, audience: 'Любители живописи 30+', stats: { views: 2400 }, url: 'https://t.me/privetpoidem/23932' },
+  { cat: 'expo', dates: ['2026-05-24'], lastDay: true, startH: null, time: 'До закрытия кухни', title: 'Лолита × Театр на Таганке', place: 'Ресторан «Лолита»', desc: 'Спецменю + культурная программа.', price: 'По меню', free: false, audience: 'Театралы 25–45', stats: { views: 2500, forwards: 18 }, url: 'https://t.me/privetpoidem/25577' },
+
+  // ===== Новые: лекции и нетворкинг на неделю =====
+  { cat: 'lecture', dates: ['2026-05-26'], startH: 20, time: '20:00', title: 'Blah-Blah Club: Does AI help or ruin?', place: 'Surf Coffee × Flacon (м. Дмитровская)', desc: 'Английский разговорный клуб. Хост — Jane. 9 мест из 12.', audience: 'Экспаты 22–35', price: '990₽', free: false, url: 'https://t.me/speakingclubsurf/2634' },
+  { cat: 'lecture', dates: ['2026-05-27'], startH: null, time: 'Лекция', title: 'Anna Air: как попасть на международные арт-выставки', place: 'БАР ЖАЖДА (Китай-город)', desc: 'Для современных художников и фотографов: оформление портфолио, open call, поиск галерей.', audience: 'Художники, фотографы, арт-инсайдеры', price: 'По регистрации', free: false, stats: { views: 203, forwards: 6, reactions: 4 }, url: 'https://t.me/JajdaKitayGorod/272' },
+  { cat: 'lecture', dates: ['2026-05-30'], startH: null, time: 'Кофе-рейв', title: '(Не)вечеринка Точка Банка для предпринимателей', place: 'Москва (закрытое сообщество)', desc: 'Офлайн-формат после онлайн-конференции 29.05: кофе-рейв, диджей-сет, нетворкинг. Также в Питере и Екатеринбурге.', audience: 'Предприниматели 25–45', price: 'По подписке', free: false, stats: { views: 1500, forwards: 10 }, url: 'https://t.me/c/1936039097/428136' },
+  { cat: 'music', dates: ['2026-05-31'], startH: 11, time: '11:30–14:30', title: 'Morning Secret Party · FUTURIONE', place: 'Futurione, ВДНХ', desc: 'Финальная вечеринка весны. KITKAT, Igor & Yana Blinder, PARA NOIR + melodic techno со скрипкой и саксофоном. Дресс-код: греческие боги, белый. Боги и Богини с подарками.', audience: 'Wellness-rave crowd, 25–38', price: 'По билетам', free: false, stats: { views: 1500, forwards: 40, reactions: 60 }, url: 'https://t.me/c/7658417896/428776' },
+
+  // ===== Регулярные / постоянные =====
+  { cat: 'sport', dateRange: ['2026-05-24','2026-05-31'], startH: 4, time: 'Рассвет (сбор 3:30–3:40)', title: 'Бери греби! — сплавы на каяках и SUP', place: 'Подмосковные водоёмы (Измайлово, Клязьма, Большой Люберецкий карьер)', desc: 'Утренние сплавы с подсветкой: пикники на островах, цапли и соловьи. Расписание обновляется еженедельно.', audience: 'Любители активного отдыха 25–40', price: 'от 4000₽', free: false, stats: { views: 1740, forwards: 52, reactions: 39 }, sourceUrl: 'https://n1709997.yclients.com/', url: 'https://t.me/beri_grebi/1086' }
+];
+
+// ===== meta =====
+const catEmoji = { festival:'🎪', sport:'🏀', music:'🎵', cinema:'🎬', lecture:'🎓', theatre:'🎭', market:'🛍', expo:'🖼' };
+const catNames = {
+  festival: 'Фестивали',
+  sport: 'Спорт',
+  music: 'Музыка и вечеринки',
+  cinema: 'Кино',
+  lecture: 'Лекции и воркшопы',
+  theatre: 'Театр',
+  market: 'Маркеты и гастрономия',
+  expo: 'Выставки'
+};
+const catOrder = ['festival','sport','music','cinema','lecture','theatre','market','expo'];
+
+// Все каналы подписки на афишу Москвы — отображаются в фильтре, даже без событий на текущую дату
+const channelNames = {
+  // Афиша / общегородские
+  kudago: 'KudaGo: Москва',
+  moscowfests: 'Лето в Москве',
+  privetpoidem: 'Привет, не хочешь сходить?',
+  quda_today: 'сегодня сюда',
+  goonweekend: 'Олеся, го на выходных?',
+  night2daymoscow: 'Night2Day',
+  MediumQuality_Afisha: 'Медиум Кволити · Афиша',
+  // Клубы / электронная сцена
+  napervom: 'Первый ночной',
+  superdiscoclub: 'ДИСКО КЛУБ',
+  apogeiiiii: 'APOGEI · вечеринки',
+  stvolrecords: 'СТВОЛ',
+  publiquecafe: 'Публичные дела',
+  JajdaKitayGorod: 'БАР ЖАЖДА',
+  // Кино / театр / классика
+  roof180: 'РУФ',
+  luchlab: 'Фотолаборатория Луч',
+  ile_theleme: 'Île Thélème',
+  edvaznakomi: 'Едва Знакомы',
+  // Стендап
+  Standupclubru: 'Стендап Клуб',
+  standup_msk: 'StandUp_Msk',
+  standup19: 'standup19',
+  // Нетворкинг / лекции / клубы по интересам
+  useful_meet: 'USEFUL MEET',
+  rightpeoplemsk: 'Right People · Москва',
+  fridaypoint: 'Friday Point ESC',
+  speakingclubsurf: 'Blah-Blah Club',
+  MoscowLEM: 'MoscowLEM',
+  // Спорт / актив
+  pingtablet: 'пинг таблет',
+  beri_grebi: 'Бери греби!',
+  moscowboxingru: 'MOSCOWBOXING',
+  namode_gym: 'Namode · единоборства',
+  socialruncomm: 'Social Run Community',
+  grkrunners: 'Те самые пробежки',
+  shu_run: 'SHU RUN',
+  TOUR130: 'TOUR DE FRIENDS',
+  // Приватные группы (Морнинг Секрет Парти, Точка Банк) — отдельная категория
+  c: 'Точка Банк / Morning Secret Party'
+};
+
+const dayPartLabels = {
+  morning: '🌅 Утро (до 12:00)',
+  afternoon: '☀️ День (12:00–17:00)',
+  evening: '🌇 Вечер (17:00–22:00)',
+  night: '🌙 Ночь (после 22:00)',
+  anytime: '📌 По расписанию'
+};
+const dayPartOrder = ['morning','afternoon','evening','night','anytime'];
+
+// ===== Date helpers =====
+function isoDate(d) {
+  // локальная дата (Москва), без сдвига на UTC
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+function parseISO(s) {
+  const [y,m,day] = s.split('-').map(Number);
+  return new Date(y, m-1, day);
+}
+function eventOnDate(e, dateISO) {
+  if (e.dateException && e.dateException.includes(dateISO)) return false;
+  if (e.dates) return e.dates.includes(dateISO);
+  if (e.dateRange) return e.dateRange[0] <= dateISO && dateISO <= e.dateRange[1];
+  return false;
+}
+function channelFromUrl(url) {
+  const m = url.match(/t\.me\/([^/]+)\//);
+  if (!m) return { username: '', name: 'Telegram' };
+  const username = m[1];
+  return { username, name: channelNames[username] || '@' + username };
+}
+function dayPartOf(h) {
+  if (h == null) return 'anytime';
+  if (h < 12) return 'morning';
+  if (h < 17) return 'afternoon';
+  if (h < 22) return 'evening';
+  return 'night';
+}
+// Channel-relative нормализация: считаем медиану views по каналу,
+// потом смотрим, насколько пост выше неё. Это позволяет сравнивать каналы разного размера.
+const channelStats = (() => {
+  const grouped = {};
+  events.forEach(e => {
+    if (!e.stats || !e.stats.views) return;
+    const ch = channelFromUrl(e.url).username;
+    (grouped[ch] = grouped[ch] || []).push(e.stats.views);
+  });
+  const result = {};
+  for (const ch in grouped) {
+    const arr = grouped[ch].sort((a,b) => a - b);
+    result[ch] = {
+      median: arr[Math.floor(arr.length / 2)] || 0,
+      count: arr.length
+    };
+  }
+  return result;
+})();
+
+function hypeScore(stats, channelUsername) {
+  if (!stats) return null;
+  const v = stats.views || 0, f = stats.forwards || 0, r = stats.reactions || 0;
+  if (!v && !f && !r) return null;
+  const med = channelStats[channelUsername]?.median;
+  // если медианы нет (один пост в выборке) — берём абсолютный score, но мягче
+  if (!med || channelStats[channelUsername].count < 2) {
+    return { score: (v/1000) + f*5 + r*2, normalized: false };
+  }
+  const relReach = v / med;                             // 1.0 = типично, 2.0+ заметно
+  const er = (f * 3 + r) / Math.max(v, 1) * 100;        // engagement rate, %
+  const fr = f / Math.max(v, 1) * 1000;                 // forward rate, ‰
+  const score = relReach * 30 + er * 4 + fr * 1.5;
+  return { score, normalized: true };
+}
+
+function hypeBadge(info) {
+  if (info == null) return null;
+  const { score, normalized } = info;
+  // нормализованные пороги (channel-relative)
+  if (normalized) {
+    if (score >= 100) return { cls: 'viral', text: '🔥 Виральный' };
+    if (score >= 60)  return { cls: 'hype', text: '⚡ Хайп' };
+    if (score >= 35)  return { cls: 'radar', text: '📈 На радаре' };
+    if (score >= 15)  return { cls: 'quiet', text: '👁 Тихо' };
+    return null;
+  }
+  // абсолютные пороги (когда нет базы для нормализации)
+  if (score >= 500) return { cls: 'viral', text: '🔥 Виральный' };
+  if (score >= 200) return { cls: 'hype', text: '⚡ Хайп' };
+  if (score >= 50)  return { cls: 'radar', text: '📈 На радаре' };
+  if (score >= 10)  return { cls: 'quiet', text: '👁 Тихо' };
+  return null;
+}
+function fmtNum(n) {
+  if (n == null) return '';
+  if (n >= 1000) return (n/1000).toFixed(n >= 10000 ? 0 : 1).replace('.0','') + 'k';
+  return n.toString();
+}
+function ruDayName(d) {
+  return ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][d.getDay()];
+}
+function ruDayLong(d) {
+  return ['воскресенье','понедельник','вторник','среду','четверг','пятницу','субботу'][d.getDay()];
+}
+function ruMonthLong(d) {
+  return ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'][d.getMonth()];
+}
+
+// ===== State =====
+// «сегодня» = текущая локальная дата устройства
+const today = isoDate(new Date());
+
+// State + URL hash sync (для сохранения в закладки конкретной даты/фильтра)
+const state = {
+  date: today,
+  mode: 'category',
+  sort: 'time',
+  cat: 'all',
+  channel: 'all'
+};
+
+function readHash() {
+  const h = location.hash.slice(1);
+  if (!h) return;
+  h.split('&').forEach(kv => {
+    const [k, v] = kv.split('=');
+    if (k && v && state.hasOwnProperty(k)) state[k] = decodeURIComponent(v);
+  });
+}
+function writeHash() {
+  const def = { date: today, mode: 'category', sort: 'time', cat: 'all', channel: 'all' };
+  const parts = [];
+  for (const k of ['date','mode','sort','cat','channel']) {
+    if (state[k] !== def[k]) parts.push(`${k}=${encodeURIComponent(state[k])}`);
+  }
+  const newHash = parts.length ? '#' + parts.join('&') : '';
+  if (newHash !== location.hash) history.replaceState(null, '', newHash || location.pathname);
+}
+readHash();
+
+// Today → next Sunday inclusive
+function buildDateOptions() {
+  const start = parseISO(today);
+  const dates = [];
+  const sunday = new Date(start);
+  // если сегодня воскресенье — следующее воскресенье через 7 дней; иначе — ближайшее
+  if (sunday.getDay() === 0) {
+    sunday.setDate(sunday.getDate() + 7);
+  } else {
+    while (sunday.getDay() !== 0) sunday.setDate(sunday.getDate() + 1);
+  }
+  const days = Math.round((sunday - start) / 86400000) + 1;
+  for (let i = 0; i < days; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    dates.push(isoDate(d));
+  }
+  return dates;
+}
+
+// ===== Render =====
+function renderDateStrip() {
+  const wrap = document.getElementById('date-strip');
+  wrap.innerHTML = '';
+  buildDateOptions().forEach((iso, i) => {
+    const d = parseISO(iso);
+    const b = document.createElement('button');
+    b.className = 'date-btn' + (i === 0 ? ' today' : '') + (iso === state.date ? ' active' : '');
+    b.dataset.date = iso;
+    const count = events.filter(e => eventOnDate(e, iso)).length;
+    const label = i === 0 ? 'Сегодня' : ruDayName(d);
+    b.innerHTML = `<span class="day-name">${label}</span><span class="day-num">${d.getDate()}</span><span class="count">${count}</span>`;
+    b.addEventListener('click', () => {
+      state.date = iso;
+      renderDateStrip();
+      renderControls();
+      renderContent();
+      updateHeader();
+      writeHash();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    wrap.appendChild(b);
+  });
+  // прокрутить к активной дате
+  const active = wrap.querySelector('.active');
+  if (active) active.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'auto' });
+}
+
+function updateHeader() {
+  const d = parseISO(state.date);
+  const isToday = state.date === today;
+  document.getElementById('page-title').textContent = isToday
+    ? 'Что сегодня'
+    : `Что в ${ruDayLong(d)}, ${d.getDate()} ${ruMonthLong(d)}`;
+  document.getElementById('page-subtitle').textContent = isToday
+    ? 'Подборка событий из московских Telegram-каналов. Тапни день — увидишь его афишу.'
+    : `${ruDayName(d)} · ${d.getDate()} ${ruMonthLong(d)} ${d.getFullYear()}`;
+}
+
+function makeChip(label, value, isActive, dataAttr) {
+  const el = document.createElement('span');
+  el.className = 'chip' + (isActive ? ' active' : '');
+  el.dataset[dataAttr] = value;
+  el.innerHTML = label;
+  return el;
+}
+
+function renderControls() {
+  const visible = events.filter(e => eventOnDate(e, state.date));
+  const allByCat = {}, allByChan = {};
+  events.forEach(e => {
+    allByCat[e.cat] = (allByCat[e.cat]||0)+1;
+    const ch = channelFromUrl(e.url).username;
+    allByChan[ch] = (allByChan[ch]||0)+1;
+  });
+  const visByCat = {}, visByChan = {};
+  visible.forEach(e => {
+    visByCat[e.cat] = (visByCat[e.cat]||0)+1;
+    const ch = channelFromUrl(e.url).username;
+    visByChan[ch] = (visByChan[ch]||0)+1;
+  });
+
+  // Категории: все, выделить серым где count=0 на эту дату
+  const catFilter = document.getElementById('cat-filter');
+  catFilter.innerHTML = '';
+  const allChip = makeChip(`Все <span class="count">${visible.length}</span>`, 'all', state.cat==='all', 'cat');
+  catFilter.appendChild(allChip);
+  catOrder.forEach(c => {
+    if (!allByCat[c]) return;
+    const cnt = visByCat[c] || 0;
+    const chip = makeChip(`${catEmoji[c]} ${catNames[c]} <span class="count">${cnt}</span>`, c, state.cat===c, 'cat');
+    if (cnt === 0) chip.classList.add('dim');
+    catFilter.appendChild(chip);
+  });
+
+  // Каналы: показываем ВСЕ известные каналы подписки (из channelNames + реально встретившиеся в событиях).
+  // Пользователь может прыгать между датами, не теряя выбранный канал из виду.
+  const chanFilter = document.getElementById('channel-filter');
+  chanFilter.innerHTML = '';
+  chanFilter.appendChild(makeChip(`Все <span class="count">${visible.length}</span>`, 'all', state.channel==='all', 'channel'));
+  const allChannels = new Set([...Object.keys(channelNames), ...Object.keys(allByChan)]);
+  allChannels.delete('c'); // приватные группы (t.me/c/...) не как отдельный «канал»
+  Array.from(allChannels).sort((a,b) => {
+    // 1) с событиями на эту дату — выше
+    const va = visByChan[a] || 0, vb = visByChan[b] || 0;
+    if (va !== vb) return vb - va;
+    // 2) с событиями в принципе — выше
+    const aa = allByChan[a] || 0, ab = allByChan[b] || 0;
+    if (aa !== ab) return ab - aa;
+    // 3) по имени
+    return (channelNames[a] || a).localeCompare(channelNames[b] || b);
+  }).forEach(ch => {
+    const name = channelNames[ch] || '@'+ch;
+    const cnt = visByChan[ch] || 0;
+    const chip = makeChip(`${name} <span class="count">${cnt}</span>`, ch, state.channel===ch, 'channel');
+    if (cnt === 0) chip.classList.add('dim');
+    chanFilter.appendChild(chip);
+  });
+}
+
+function cardEl(e) {
+  const card = document.createElement('article');
+  card.className = 'card';
+  const priceClass = e.free ? 'free' : 'paid';
+  const ch = channelFromUrl(e.url);
+  const channelHref = ch.username ? `https://t.me/${ch.username}` : e.url;
+  const multiDay = (e.dateRange && e.dateRange[0] !== e.dateRange[1]) || (e.dates && e.dates.length > 1);
+  const hype = hypeBadge(hypeScore(e.stats, ch.username));
+  const statsHtml = e.stats ? `
+    <div class="card-stats">
+      ${e.stats.views ? `<span>👁 ${fmtNum(e.stats.views)}</span>` : ''}
+      ${e.stats.forwards ? `<span>🔁 ${fmtNum(e.stats.forwards)}</span>` : ''}
+      ${e.stats.reactions ? `<span>❤ ${fmtNum(e.stats.reactions)}</span>` : ''}
+    </div>` : '';
+  card.innerHTML = `
+    <div class="meta-row">
+      <a class="badge-channel" href="${channelHref}" target="_blank" rel="noopener">${ch.name}</a>
+      ${hype ? `<span class="badge-hype ${hype.cls}">${hype.text}</span>` : ''}
+      ${e.lastDay ? '<span class="badge-last-day">Последний день</span>' : ''}
+      ${multiDay && !e.lastDay ? '<span class="badge-multi-day">Идёт несколько дней</span>' : ''}
+    </div>
+    <div class="card-time">🕐 ${e.time}</div>
+    <h3 class="card-title">${catEmoji[e.cat]} ${e.title}</h3>
+    <div class="card-place">📍 ${e.place}</div>
+    ${e.audience ? `<div class="card-audience">👥 ${e.audience}</div>` : ''}
+    <div class="card-desc">${e.desc}</div>
+    ${statsHtml}
+    <div class="card-footer">
+      <span class="price ${priceClass}">${e.price}</span>
+      <div class="card-actions">
+        ${e.sourceUrl ? `<a class="card-link primary" href="${e.sourceUrl}" target="_blank" rel="noopener">🎟 Подробнее</a>` : ''}
+        <a class="card-link secondary" href="${e.url}" target="_blank" rel="noopener">📨 Пост</a>
+      </div>
+    </div>
+  `;
+  return card;
+}
+
+function sectionEl(title, count) {
+  const h = document.createElement('div');
+  h.className = 'section-title';
+  h.innerHTML = `<span>${title}</span><span class="count-badge">${count}</span>`;
+  return h;
+}
+
+function renderContent() {
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+  let list = events.filter(e => eventOnDate(e, state.date));
+  if (state.cat !== 'all') list = list.filter(e => e.cat === state.cat);
+  if (state.channel !== 'all') list = list.filter(e => channelFromUrl(e.url).username === state.channel);
+
+  if (!list.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.innerHTML = '<span class="em">🌝</span>На выбранную дату событий не нашлось.<br>Попробуй другой день или сбрось фильтры.';
+    content.appendChild(empty);
+    return;
+  }
+
+  // Группировка
+  const hypeBuckets = {
+    viral: '🔥 Виральный',
+    hype: '⚡ Хайп',
+    radar: '📈 На радаре',
+    quiet: '👁 Тихо',
+    nodata: '📊 Без метрик'
+  };
+  const hypeOrder = ['viral','hype','radar','quiet','nodata'];
+
+  const groups = {};
+  list.forEach(e => {
+    let key;
+    if (state.mode === 'category') key = e.cat;
+    else if (state.mode === 'time') key = dayPartOf(e.startH);
+    else if (state.mode === 'channel') key = channelFromUrl(e.url).username;
+    else { // hype
+      const b = hypeBadge(hypeScore(e.stats, channelFromUrl(e.url).username));
+      key = b ? b.cls : 'nodata';
+    }
+    (groups[key] = groups[key] || []).push(e);
+  });
+
+  let keys;
+  if (state.mode === 'category') keys = catOrder.filter(k => groups[k]);
+  else if (state.mode === 'time') keys = dayPartOrder.filter(k => groups[k]);
+  else if (state.mode === 'channel') keys = Object.keys(groups).sort((a,b) => groups[b].length - groups[a].length);
+  else keys = hypeOrder.filter(k => groups[k]);
+
+  // Сортировка внутри группы
+  const scoreOf = (e) => {
+    const info = hypeScore(e.stats, channelFromUrl(e.url).username);
+    return info ? info.score : -1;
+  };
+  keys.forEach(k => {
+    if (state.sort === 'hype') {
+      groups[k].sort((a,b) => scoreOf(b) - scoreOf(a));
+    } else {
+      groups[k].sort((a,b) => (a.startH ?? 9999) - (b.startH ?? 9999));
+    }
+    let title;
+    if (state.mode === 'category') title = `${catEmoji[k]} ${catNames[k]}`;
+    else if (state.mode === 'time') title = dayPartLabels[k];
+    else if (state.mode === 'channel') title = `📡 ${channelNames[k] || '@'+k}`;
+    else title = hypeBuckets[k];
+    content.appendChild(sectionEl(title, groups[k].length));
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    groups[k].forEach(e => grid.appendChild(cardEl(e)));
+    content.appendChild(grid);
+  });
+}
+
+// listeners
+document.getElementById('group-mode').addEventListener('click', e => {
+  if (!e.target.classList.contains('chip')) return;
+  state.mode = e.target.dataset.mode;
+  document.querySelectorAll('#group-mode .chip').forEach(c => c.classList.toggle('active', c.dataset.mode === state.mode));
+  renderContent();
+  writeHash();
+});
+document.getElementById('sort-mode').addEventListener('click', e => {
+  if (!e.target.classList.contains('chip')) return;
+  state.sort = e.target.dataset.sort;
+  document.querySelectorAll('#sort-mode .chip').forEach(c => c.classList.toggle('active', c.dataset.sort === state.sort));
+  renderContent();
+  writeHash();
+});
+document.getElementById('cat-filter').addEventListener('click', e => {
+  if (!e.target.classList.contains('chip')) return;
+  state.cat = e.target.dataset.cat;
+  document.querySelectorAll('#cat-filter .chip').forEach(c => c.classList.toggle('active', c.dataset.cat === state.cat));
+  renderContent();
+  writeHash();
+});
+document.getElementById('channel-filter').addEventListener('click', e => {
+  if (!e.target.classList.contains('chip')) return;
+  state.channel = e.target.dataset.channel;
+  document.querySelectorAll('#channel-filter .chip').forEach(c => c.classList.toggle('active', c.dataset.channel === state.channel));
+  renderContent();
+  writeHash();
+});
+
+renderDateStrip();
+renderControls();
+renderContent();
+updateHeader();
+</script>
+</body>
+</html>
